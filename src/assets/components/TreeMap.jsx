@@ -12,6 +12,7 @@ const TreeMapContainer = styled.div`
 
 const TreeMapItem = styled.div`
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   color: white;
@@ -19,6 +20,7 @@ const TreeMapItem = styled.div`
   box-sizing: border-box;
   border: 1px solid #fff;
   background-color: ${({ isLarge }) => (isLarge ? 'rgba(0, 0, 0, 0.1)' : 'transparent')};
+  font-family: 'Roboto', sans-serif; 
 `;
 
 const TreeMap = ({ data }) => {
@@ -47,7 +49,8 @@ const TreeMap = ({ data }) => {
             style={{ gridArea: `span ${Math.ceil(area / 10)}`, backgroundColor }}
             isLarge={isLarge}
           >
-            {item.brand}
+            <div>{item.brand}</div>
+            <div>{item.percentChange}%</div>
           </TreeMapItem>
         );
       })}
