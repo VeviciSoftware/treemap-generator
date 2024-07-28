@@ -1,4 +1,3 @@
-// MainPage.jsx
 import { useState } from 'react';
 import TreeMap from './TreeMap';
 import * as XLSX from 'xlsx';

@@ -2,11 +2,12 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const TreeMapContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   width: 800px;
   height: 600px;
   border: 1px solid #ccc;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-auto-rows: minmax(100px, auto);
 `;
 
 const TreeMapItem = styled.div`
@@ -17,6 +18,7 @@ const TreeMapItem = styled.div`
   font-size: 14px;
   box-sizing: border-box;
   border: 1px solid #fff;
+  background-color: ${({ isLarge }) => (isLarge ? 'rgba(0, 0, 0, 0.1)' : 'transparent')};
 `;
 
 const TreeMap = ({ data }) => {
@@ -28,20 +30,22 @@ const TreeMap = ({ data }) => {
     }
   };
 
-  // Calcular a área total das vendas
   const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+
+  const sortedData = [...data].sort((a, b) => b.sales - a.sales);
 
   return (
     <TreeMapContainer>
-      {data.map((item) => {
-        const width = (item.sales / totalSales) * 100 + '%';
-        const height = (item.sales / totalSales) * 100 + '%';
+      {sortedData.map((item, index) => {
+        const area = (item.sales / totalSales) * 100;
         const backgroundColor = getColor(item.percentChange);
+        const isLarge = index === 0;
 
         return (
           <TreeMapItem
             key={item.brand}
-            style={{ width, height, backgroundColor }}
+            style={{ gridArea: `span ${Math.ceil(area / 10)}`, backgroundColor }}
+            isLarge={isLarge}
           >
             {item.brand}
           </TreeMapItem>
