@@ -3,7 +3,7 @@ import styled from 'styled-components'
 import MainPage from './assets/components/MainPage'
 
 const FundoGradiente = styled.div`
-  background: linear-gradient(174.61deg, #041833 4.16%, #04244F 48%, #154580 96.76%);
+  background: linear-gradient(174.61deg, #506177 4.16%, #c4e3e9 48%, #d9eaff 96.76%);
   width: 100%;
   min-height: 100vh;
 `
@@ -14,13 +14,20 @@ const AppContainer = styled.div`
   max-width: 100%;
 `
 
+const MainContainer = styled.main`
+  display: flex;
+  gap: 24px;
+`
+
 function App() {
 
   return (
     <>
       <FundoGradiente>
         <AppContainer>
-          <MainPage />
+          <MainContainer>
+            <MainPage />
+          </MainContainer>
         </AppContainer>
       </FundoGradiente>
   

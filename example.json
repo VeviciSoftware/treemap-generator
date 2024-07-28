@@ -1,0 +1,5 @@
+[
+    { "brand": "Toyota", "sales": 50000, "percentChange": 10 },
+    { "brand": "Volkswagen", "sales": 45000, "percentChange": -15 },
+    { "brand": "Ford", "sales": 30000, "percentChange": 20 }
+  ]

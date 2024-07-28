@@ -20,7 +20,6 @@ const TreeMapItem = styled.div`
 `;
 
 const TreeMap = ({ data }) => {
-  // Função para calcular a cor com base no percentual de crescimento
   const getColor = (percentChange) => {
     if (percentChange > 0) {
       return `rgba(0, 128, 0, ${percentChange / 100})`; // Verde para crescimento
@@ -52,7 +51,6 @@ const TreeMap = ({ data }) => {
   );
 };
 
-// Adicionar validação de props
 TreeMap.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
