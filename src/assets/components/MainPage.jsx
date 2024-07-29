@@ -5,32 +5,13 @@ import { Button, Container, Typography } from "@mui/material";
 import HowToUse from "./HowToUse";
 
 const MainPage = () => {
-  const [carSalesData, setCarSalesData] = useState([]);
+  const [Data, setData] = useState([]);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const data = e.target.result;
-      if (file.type === "application/json") {
-        const jsonData = JSON.parse(data);
-        setCarSalesData(jsonData);
-      } else if (
-        file.type ===
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-      ) {
-        const arrayBuffer = data;
-        const workbook = XLSX.read(new Uint8Array(arrayBuffer), {
-          type: "array",
-        });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const excelData = XLSX.utils.sheet_to_json(worksheet);
-        setCarSalesData(excelData);
-      }
-    };
-
+  
+    // Dependendo do tipo do arquivo, a leitura é feita de forma diferente.
     if (file.type === "application/json") {
       reader.readAsText(file);
     } else if (
@@ -39,6 +20,27 @@ const MainPage = () => {
     ) {
       reader.readAsArrayBuffer(file);
     }
+  
+    reader.onload = (e) => {
+      const data = e.target.result;
+      if (file.type === "application/json") {
+        const jsonData = JSON.parse(data); // Converte o arquivo JSON em um objeto JavaScript.
+        setData(jsonData);
+      } else if (
+        file.type ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ) {
+        const arrayBuffer = data; // Converte o arquivo XLSX em um ArrayBuffer.
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { // Lê o arquivo XLSX.
+          type: "array",
+        });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+  
+        const excelData = XLSX.utils.sheet_to_json(worksheet); // Converte a planilha em um objeto JSON.
+        setData(excelData); // Atualiza o estado com o JSON gerado.
+      }
+    };
   };
 
   return (
@@ -60,7 +62,7 @@ const MainPage = () => {
       </label>
       <div style={{ display: "flex", marginTop: "20px", gap: "20px" }}>
         <div style={{ flex: 1 }}>
-          <TreeMap data={carSalesData} />
+          <TreeMap data={Data} />
         </div>
         <HowToUse />
       </div>

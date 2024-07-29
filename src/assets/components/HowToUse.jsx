@@ -27,7 +27,7 @@ const HowToUse = () => {
         </Typography>
         <Box
           component="img"
-          src="/public/JSONExample.png"
+          src="/JSONExample.png"
           alt="Exemplo de arquivo JSON"
           sx={{ width: "100%", mt: 1, mb: 2 }}
         />
@@ -38,7 +38,7 @@ const HowToUse = () => {
         </Typography>
         <Box
           component="img"
-          src="/public/XLSXExample.png"
+          src="/XLSXExample.png"
           alt="Exemplo de arquivo XLSX"
           sx={{ width: "100%", mt: 1, mb: 2 }}
         />
