@@ -2,12 +2,12 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
 const TreeMapContainer = styled.div`
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   width: 800px;
   height: 600px;
   border: 1px solid #ccc;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  grid-auto-rows: minmax(100px, auto);
+  position: relative;
 `;
 
 const TreeMapItem = styled.div`
@@ -19,45 +19,64 @@ const TreeMapItem = styled.div`
   font-size: 14px;
   box-sizing: border-box;
   border: 1px solid #fff;
-  background-color: ${({ isLarge }) => (isLarge ? 'rgba(0, 0, 0, 0.1)' : 'transparent')};
-  font-family: 'Roboto', sans-serif; 
+  background-color: ${({ percentChange }) => (percentChange > 0 ? 'green' : 'red')};
+  opacity: ${({ percentChange }) => Math.min(Math.abs(percentChange) / 100, 1)};
+  position: absolute;
 `;
 
 const TreeMap = ({ data }) => {
-
-  // Função para definir a cor do item do TreeMap com base no percentual
-  const getColor = (percentChange) => {
-    if (percentChange > 0) {
-      return `rgba(0, 128, 0, ${percentChange / 100})`; // Verde para crescimento
-    } else {
-      return `rgba(255, 0, 0, ${Math.abs(percentChange) / 100})`; // Vermelho para decréscimo
-    }
-  };
+  const containerWidth = 800;
+  const containerHeight = 600;
+  const totalArea = containerWidth * containerHeight;
 
   // Calcula o total de vendas
   const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
 
-  // Ordena os dados pelo total de vendas
-  const sortedData = [...data].sort((a, b) => b.sales - a.sales);
+  // Função para distribuir os itens usando o algoritmo slice-and-dice
+  const calculatePositions = (items, x, y, width, height, horizontal) => {
+    if (items.length === 0) return [];
+
+    let currentX = x;
+    let currentY = y;
+    let positions = [];
+
+    items.forEach(item => {
+      const itemArea = (item.sales / totalSales) * totalArea;
+      const itemWidth = horizontal ? (itemArea / height) : width;
+      const itemHeight = horizontal ? height : (itemArea / width);
+
+      positions.push({
+        ...item,
+        x: currentX,
+        y: currentY,
+        width: itemWidth,
+        height: itemHeight,
+      });
+
+      if (horizontal) {
+        currentX += itemWidth;
+      } else {
+        currentY += itemHeight;
+      }
+    });
+
+    return positions;
+  };
+
+  const positions = calculatePositions(data, 0, 0, containerWidth, containerHeight, true);
 
   return (
     <TreeMapContainer>
-      {sortedData.map((item, index) => {
-        const area = (item.sales / totalSales) * 100; // Calcula a área do item e multiplica por 100 pra ter a porcentagem da área
-        const backgroundColor = getColor(item.percentChange); // Define a cor do item
-        const isLarge = index === 0; // Verifica se é o item com maior área
-
-        return (
-          <TreeMapItem
-            key={item.brand}
-            style={{ gridArea: `span ${Math.ceil(area / 10)}`, backgroundColor }}
-            isLarge={isLarge}
-          >
-            <div>{item.brand}</div>
-            <div>{item.percentChange}%</div>
-          </TreeMapItem>
-        );
-      })}
+      {positions.map((item) => (
+        <TreeMapItem
+          key={item.brand}
+          style={{ left: `${item.x}px`, top: `${item.y}px`, width: `${item.width}px`, height: `${item.height}px` }}
+          percentChange={item.percentChange}
+        >
+          <div>{item.brand}</div>
+          <div>{item.sales}</div>
+        </TreeMapItem>
+      ))}
     </TreeMapContainer>
   );
 };
