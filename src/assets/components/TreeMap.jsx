@@ -1,87 +1,73 @@
+import { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import styled from 'styled-components';
 
-const TreeMapContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  width: 800px;
-  height: 600px;
-  border: 1px solid #ccc;
-  position: relative;
-`;
-
-const TreeMapItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
-  box-sizing: border-box;
-  border: 1px solid #fff;
-  background-color: ${({ percentChange }) => (percentChange > 0 ? 'green' : 'red')};
-  opacity: ${({ percentChange }) => Math.min(Math.abs(percentChange) / 100, 1)};
-  position: absolute;
-`;
-
-const TreeMap = ({ data }) => {
-  const containerWidth = 800;
-  const containerHeight = 600;
-  const totalArea = containerWidth * containerHeight;
-
-  // Calcula o total de vendas
-  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
-
-  // Função para distribuir os itens usando o algoritmo slice-and-dice
-  const calculatePositions = (items, x, y, width, height, horizontal) => {
-    if (items.length === 0) return [];
-
-    let currentX = x;
-    let currentY = y;
-    let positions = [];
-
-    items.forEach(item => {
-      const itemArea = (item.sales / totalSales) * totalArea;
-      const itemWidth = horizontal ? (itemArea / height) : width;
-      const itemHeight = horizontal ? height : (itemArea / width);
-
-      positions.push({
-        ...item,
-        x: currentX,
-        y: currentY,
-        width: itemWidth,
-        height: itemHeight,
-      });
-
-      if (horizontal) {
-        currentX += itemWidth;
-      } else {
-        currentY += itemHeight;
-      }
-    });
-
-    return positions;
-  };
-
-  const positions = calculatePositions(data, 0, 0, containerWidth, containerHeight, true);
-
-  return (
-    <TreeMapContainer>
-      {positions.map((item) => (
-        <TreeMapItem
-          key={item.brand}
-          style={{ left: `${item.x}px`, top: `${item.y}px`, width: `${item.width}px`, height: `${item.height}px` }}
-          percentChange={item.percentChange}
-        >
-          <div>{item.brand}</div>
-          <div>{item.sales}</div>
-        </TreeMapItem>
-      ))}
-    </TreeMapContainer>
-  );
+const getColor = (percentChange) => {
+  if (percentChange > 0) {
+    return `rgba(0, 128, 0, ${Math.min(1, percentChange / 100 + 0.1)})`; // Verde
+  } else {
+    return `rgba(255, 0, 0, ${Math.min(1, Math.abs(percentChange) / 100 + 0.1)})`; // Vermelho
+  }
 };
 
-TreeMap.propTypes = {
+const segmentate = (ctx, data, start, end, total, bounds, horizontal) => {
+  if (start >= end) return;
+
+  if (end - start === 1) {
+    const item = data[start];
+    const color = getColor(item.percentChange);
+    ctx.fillStyle = color;
+    ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
+    ctx.fillStyle = 'white';
+    ctx.fillText(item.brand, bounds.x + 5, bounds.y + 15);
+    return;
+  }
+
+  let sum = 0;
+  let index = start;
+  const halfTotal = total / 2;
+
+  while (sum < halfTotal && index < end) {
+    sum += data[index].sales;
+    index++;
+  }
+
+  if (index === start) index++; // Evitar recursão infinita
+
+  const ratio = sum / total;
+  let head, tail;
+
+  if (horizontal) {
+    const width = bounds.width * ratio;
+    head = { x: bounds.x, y: bounds.y, width, height: bounds.height };
+    tail = { x: bounds.x + width, y: bounds.y, width: bounds.width - width, height: bounds.height };
+  } else {
+    const height = bounds.height * ratio;
+    head = { x: bounds.x, y: bounds.y, width: bounds.width, height };
+    tail = { x: bounds.x, y: bounds.y + height, width: bounds.width, height: bounds.height - height };
+  }
+
+  segmentate(ctx, data, start, index, sum, head, !horizontal);
+  segmentate(ctx, data, index, end, total - sum, tail, !horizontal);
+};
+
+const TreeMapCanvas = ({ data }) => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+    const bounds = { x: 0, y: 0, width: canvas.width, height: canvas.height };
+    segmentate(ctx, data, 0, data.length, totalSales, bounds, true);
+  }, [data]);
+
+  return <canvas ref={canvasRef} width={500} height={500} />;
+};
+
+TreeMapCanvas.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       brand: PropTypes.string.isRequired,
@@ -91,4 +77,4 @@ TreeMap.propTypes = {
   ).isRequired,
 };
 
-export default TreeMap;
+export default TreeMapCanvas;
