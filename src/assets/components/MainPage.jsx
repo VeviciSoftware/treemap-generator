@@ -1,17 +1,26 @@
 import { useState } from "react";
 import TreeMap from "./TreeMap";
 import * as XLSX from "xlsx";
-import { Button, Container, Typography, Box } from "@mui/material";
+import { Container, Typography, Box } from "@mui/material";
 import HowToUse from "./HowToUse";
+import FileUploader from "./FileUploader";
+import Form from "./Form";
+import ActionButtons from "./ActionButtons";
 
 const MainPage = () => {
   const [Data, setData] = useState([]);
+  const [formData, setFormData] = useState({
+    brand: "",
+    sales: "",
+    percentChange: "",
+  });
+  const [editIndex, setEditIndex] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const handleFileUpload = (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-  
-    // Dependendo do tipo do arquivo, a leitura é feita de forma diferente.
+
     if (file.type === "application/json") {
       reader.readAsText(file);
     } else if (
@@ -20,27 +29,76 @@ const MainPage = () => {
     ) {
       reader.readAsArrayBuffer(file);
     }
-  
+
     reader.onload = (e) => {
       const data = e.target.result;
       if (file.type === "application/json") {
-        const jsonData = JSON.parse(data); // Converte o arquivo JSON em um objeto JavaScript.
+        const jsonData = JSON.parse(data);
         setData(jsonData);
       } else if (
         file.type ===
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
       ) {
-        const arrayBuffer = data; // Converte o arquivo XLSX em um ArrayBuffer.
-        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { // Lê o arquivo XLSX.
+        const arrayBuffer = data;
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), {
           type: "array",
         });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-  
-        const excelData = XLSX.utils.sheet_to_json(worksheet); // Converte a planilha em um objeto JSON.
-        setData(excelData); // Atualiza o estado com o JSON gerado.
+        const excelData = XLSX.utils.sheet_to_json(worksheet);
+        setData(excelData);
       }
     };
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  const handleDeleteData = () => {
+    const updatedData = Data.filter((_, i) => i !== selectedIndex);
+    setData(updatedData);
+    setSelectedIndex(null);
+    setFormData({ brand: "", sales: "", percentChange: "" });
+  };
+  
+  const handleTreeMapClick = (index) => {
+    setSelectedIndex(index);
+    setFormData(Data[index]);
+    setEditIndex(index);
+  };
+  
+  const handleClearData = () => {
+    setData([]);
+    setFormData({ brand: "", sales: "", percentChange: "" });
+    setEditIndex(null);
+    setSelectedIndex(null);
+  };
+  
+  const handleAddData = () => {
+    if (!formData.brand || !formData.sales || !formData.percentChange) {
+      alert("Por favor, preencha todos os campos do formulário.");
+      return;
+    }
+
+    const newData = {
+      ...formData,
+      sales: Number(formData.sales),
+      percentChange: Number(formData.percentChange),
+    };
+  
+    if (editIndex !== null) {
+      const updatedData = Data.map((item, index) =>
+        index === editIndex ? newData : item
+      );
+      setData(updatedData);
+      setEditIndex(null);
+    } else {
+      setData([...Data, newData]);
+    }
+    setFormData({ brand: "", sales: "", percentChange: "" });
+    setSelectedIndex(null);
   };
 
   return (
@@ -48,20 +106,17 @@ const MainPage = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         TreeMap Generator
       </Typography>
-      <input
-        type="file"
-        accept=".json, .xlsx"
-        style={{ display: "none" }}
-        id="file-upload"
-        onChange={handleFileUpload}
+      <FileUploader onFileUpload={handleFileUpload} />
+      <Form formData={formData} onInputChange={handleInputChange} />
+      <ActionButtons
+        onAddData={handleAddData}
+        onUpdateData={handleAddData}
+        onDeleteData={handleDeleteData}
+        onClearData={handleClearData}
+        selectedIndex={selectedIndex}
       />
-      <label htmlFor="file-upload">
-        <Button variant="contained" component="span">
-          Upload File
-        </Button>
-      </label>
-      <Box sx={{ mt: 2 }}>
-        <TreeMap data={Data} />
+      <Box sx={{ mt: 2 }} className="treemap-container">
+        <TreeMap data={Data} onClick={handleTreeMapClick} />
       </Box>
       <Box sx={{ mt: 2 }}>
         <HowToUse />

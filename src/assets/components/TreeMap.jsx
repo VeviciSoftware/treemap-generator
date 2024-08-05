@@ -68,12 +68,19 @@ const TreeMapSegment = styled.div`
   padding: 5px;
   font-size: 12px;
   overflow: hidden;
+  cursor: pointer; /* Adiciona um cursor de ponteiro para indicar que é clicável */
 `;
 
-const TreeMap = ({ data }) => {
+const TreeMap = ({ data, onClick }) => {
   const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
   const bounds = { x: 0, y: 0, width: 100, height: 100 }; // Usando porcentagem para responsividade
   const segments = segmentate(data, 0, data.length, totalSales, bounds, true);
+
+  const handleClick = (index) => {
+    if (onClick) {
+      onClick(index);
+    }
+  };
 
   return (
     <TreeMapContainer>
@@ -87,6 +94,7 @@ const TreeMap = ({ data }) => {
             height: `${segment.height}%`,
             backgroundColor: segment.color,
           }}
+          onClick={() => handleClick(index)}
         >
           <div>{segment.brand}</div>
           <div>{segment.sales}</div>
@@ -105,6 +113,7 @@ TreeMap.propTypes = {
       percentChange: PropTypes.number.isRequired,
     })
   ).isRequired,
+  onClick: PropTypes.func, // Adiciona a prop onClick
 };
 
 export default TreeMap;
