@@ -54,8 +54,8 @@ const segmentate = (data, start, end, total, bounds, horizontal) => {
 
 const TreeMapContainer = styled.div`
   position: relative;
-  width: 750px;
-  height: 750px;
+  width: 1150px;
+  height: 1000px;
 `;
 
 const TreeMapSegment = styled.div`
