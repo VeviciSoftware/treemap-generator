@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import styled from 'styled-components';
 
 const getColor = (percentChange) => {
   if (percentChange > 0) {
@@ -9,25 +10,24 @@ const getColor = (percentChange) => {
   }
 };
 
-const segmentate = (ctx, data, start, end, total, bounds, horizontal) => {
-  if (start >= end) return;
+const segmentate = (data, start, end, total, bounds, horizontal) => {
+  if (start >= end) return [];
 
   if (end - start === 1) {
     const item = data[start];
     const color = getColor(item.percentChange);
-    ctx.fillStyle = color;
-    ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-    ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
-    ctx.fillStyle = 'white';
-    ctx.fillText(item.brand, bounds.x + 5, bounds.y + 15);
-    return;
+    return [{
+      ...bounds,
+      color,
+      brand: item.brand
+    }];
   }
 
   let sum = 0;
   let index = start;
   const halfTotal = total / 2;
 
-  while (sum < halfTotal && index < end) {
+  while (sum < halfTotal && index < end - 1) {
     sum += data[index].sales;
     index++;
   }
@@ -47,24 +47,51 @@ const segmentate = (ctx, data, start, end, total, bounds, horizontal) => {
     tail = { x: bounds.x, y: bounds.y + height, width: bounds.width, height: bounds.height - height };
   }
 
-  segmentate(ctx, data, start, index, sum, head, !horizontal);
-  segmentate(ctx, data, index, end, total - sum, tail, !horizontal);
+  return [
+    ...segmentate(data, start, index, sum, head, !horizontal),
+    ...segmentate(data, index, end, total - sum, tail, !horizontal)
+  ];
 };
 
-const TreeMapCanvas = ({ data }) => {
-  const canvasRef = useRef(null);
+const TreeMapContainer = styled.div`
+  position: relative;
+  width: 1150px;
+  height: 1000px;
+`;
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+const TreeMapSegment = styled.div`
+  position: absolute;
+  border: 1px solid #fff;
+  box-sizing: border-box;
+  color: white;
+  padding: 5px;
+  font-size: 12px;
+  overflow: hidden;
+`;
 
-    const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
-    const bounds = { x: 0, y: 0, width: canvas.width, height: canvas.height };
-    segmentate(ctx, data, 0, data.length, totalSales, bounds, true);
-  }, [data]);
+const TreeMap = ({ data }) => {
+  const totalSales = data.reduce((sum, item) => sum + item.sales, 0);
+  const bounds = { x: 0, y: 0, width: 100, height: 100 }; // Usando porcentagem para responsividade
+  const segments = segmentate(data, 0, data.length, totalSales, bounds, true);
 
-  return <canvas ref={canvasRef} width={500} height={500} />;
+  return (
+    <TreeMapContainer>
+      {segments.map((segment, index) => (
+        <TreeMapSegment
+          key={index}
+          style={{
+            left: `${segment.x}%`,
+            top: `${segment.y}%`,
+            width: `${segment.width}%`,
+            height: `${segment.height}%`,
+            backgroundColor: segment.color,
+          }}
+        >
+          {segment.brand}
+        </TreeMapSegment>
+      ))}
+    </TreeMapContainer>
+  );
 };
 
 TreeMapCanvas.propTypes = {

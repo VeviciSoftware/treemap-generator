@@ -1,7 +1,7 @@
 import { useState } from "react";
 import TreeMap from "./TreeMap";
 import * as XLSX from "xlsx";
-import { Button, Container, Typography } from "@mui/material";
+import { Button, Container, Typography, Box } from "@mui/material";
 import HowToUse from "./HowToUse";
 
 const MainPage = () => {
@@ -60,12 +60,12 @@ const MainPage = () => {
           Upload File
         </Button>
       </label>
-      <div style={{ display: "flex", marginTop: "20px", gap: "20px" }}>
-        <div style={{ flex: 1 }}>
-          <TreeMap data={Data} />
-        </div>
+      <Box sx={{ mt: 2 }}>
+        <TreeMap data={Data} />
+      </Box>
+      <Box sx={{ mt: 2 }}>
         <HowToUse />
-      </div>
+      </Box>
     </Container>
   );
 };
