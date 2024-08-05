@@ -1,4 +1,3 @@
-import { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 
@@ -19,7 +18,9 @@ const segmentate = (data, start, end, total, bounds, horizontal) => {
     return [{
       ...bounds,
       color,
-      brand: item.brand
+      brand: item.brand,
+      sales: item.sales,
+      percentChange: item.percentChange
     }];
   }
 
@@ -87,14 +88,16 @@ const TreeMap = ({ data }) => {
             backgroundColor: segment.color,
           }}
         >
-          {segment.brand}
+          <div>{segment.brand}</div>
+          <div>{segment.sales}</div>
+          <div>{segment.percentChange}%</div>
         </TreeMapSegment>
       ))}
     </TreeMapContainer>
   );
 };
 
-TreeMapCanvas.propTypes = {
+TreeMap.propTypes = {
   data: PropTypes.arrayOf(
     PropTypes.shape({
       brand: PropTypes.string.isRequired,
@@ -104,4 +107,4 @@ TreeMapCanvas.propTypes = {
   ).isRequired,
 };
 
-export default TreeMapCanvas;
+export default TreeMap;
