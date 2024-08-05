@@ -47,8 +47,11 @@ const segmentate = (ctx, data, start, end, total, bounds, horizontal) => {
     tail = { x: bounds.x, y: bounds.y + height, width: bounds.width, height: bounds.height - height };
   }
 
-  segmentate(ctx, data, start, index, sum, head, !horizontal);
-  segmentate(ctx, data, index, end, total - sum, tail, !horizontal);
+  // Verificar se a divisão é válida antes de chamar recursivamente
+  if (start < index && index < end) {
+    segmentate(ctx, data, start, index, sum, head, !horizontal);
+    segmentate(ctx, data, index, end, total - sum, tail, !horizontal);
+  }
 };
 
 const TreeMapCanvas = ({ data }) => {
@@ -64,7 +67,7 @@ const TreeMapCanvas = ({ data }) => {
     segmentate(ctx, data, 0, data.length, totalSales, bounds, true);
   }, [data]);
 
-  return <canvas ref={canvasRef} width={500} height={500} />;
+  return <canvas ref={canvasRef} width={750} height={750} />;
 };
 
 TreeMapCanvas.propTypes = {
